@@ -8,7 +8,6 @@ Supabase Project Setup Required: You will need to:
 
 Create a Supabase project at supabase.com
 Run the provided SQL schema in your Supabase SQL Editor
-Enable Google OAuth in Authentication > Providers
 Update the .env file with your project credentials
 Proposed Changes
 Core Setup
@@ -40,7 +39,6 @@ Login/logout helper functions
 LoginPage.jsx
 Clean, Notion-style login form
 Email/Password authentication
-Google OAuth button
 Error handling and loading states
 Layout & Routing
 [NEW] 
@@ -92,7 +90,6 @@ Manual Browser Testing
 Development Server
 
 bash
-cd c:\Users\gbcop\OneDrive\Documents\projects\builder
 npm run dev
 Authentication Flow
 
