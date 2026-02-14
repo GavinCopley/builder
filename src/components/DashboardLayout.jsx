@@ -35,22 +35,24 @@ export default function DashboardLayout() {
                 />
             )}
 
-            {/* Sidebar */}
-            <div
-                className={`
-                    ${isMobile ? 'fixed inset-y-0 left-0 z-30' : 'relative'}
-                    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                    transition-transform duration-200 ease-in-out
-                `}
-            >
-                <Sidebar
-                    isCollapsed={!sidebarOpen}
-                    onToggle={toggleSidebar}
-                    onCloseMobile={() => isMobile && setSidebarOpen(false)}
-                />
-            </div>
+            {/* Sidebar — fully removed from flow when collapsed on desktop */}
+            {(sidebarOpen || isMobile) && (
+                <div
+                    className={`
+                        ${isMobile ? 'fixed inset-y-0 left-0 z-30' : 'relative flex-shrink-0'}
+                        ${isMobile && !sidebarOpen ? '-translate-x-full' : 'translate-x-0'}
+                        transition-transform duration-200 ease-in-out
+                    `}
+                >
+                    <Sidebar
+                        isCollapsed={!sidebarOpen}
+                        onToggle={toggleSidebar}
+                        onCloseMobile={() => isMobile && setSidebarOpen(false)}
+                    />
+                </div>
+            )}
 
-            {/* Collapsed sidebar strip — desktop only */}
+            {/* Collapsed sidebar strip — fixed to far left on desktop */}
             {!isMobile && !sidebarOpen && (
                 <div
                     className="flex flex-col items-center py-3 px-1 flex-shrink-0"

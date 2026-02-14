@@ -13,9 +13,56 @@ import {
 
 /**
  * Centralized essay type definitions.
- * Each type includes metadata, structure template, and display config.
- * Structure templates define the section blocks shown in the essay builder.
+ *
+ * Groups with `addable: true` can be duplicated by the user (e.g. add more body paragraphs).
+ * The `bodyTemplate` on each type defines what a new body paragraph looks like when added.
  */
+
+// ── Shared body-paragraph templates ────────────────────────────────
+
+const argumentBodySections = [
+    { id: 'topic_sentence', label: 'Topic Sentence', placeholder: 'State the main point of this paragraph...' },
+    { id: 'lead_in', label: 'Lead-in', placeholder: 'Introduce the evidence with context...' },
+    { id: 'quote', label: 'Quote / Paraphrase', placeholder: 'Include a direct quote or paraphrased evidence...' },
+    { id: 'analysis', label: 'Analysis', placeholder: 'Explain how this evidence supports your argument...' },
+    { id: 'concluding_sentence', label: 'Concluding Sentence', placeholder: 'Wrap up this paragraph and transition to the next...' },
+]
+
+const analyticBodySections = [
+    { id: 'claim', label: 'Claim', placeholder: 'State your analytical point...' },
+    { id: 'lead_in', label: 'Lead-in', placeholder: 'Introduce the evidence with context...' },
+    { id: 'quote', label: 'Quote / Paraphrase', placeholder: 'A direct quote or specific reference from the text...' },
+    { id: 'analysis', label: 'Analysis', placeholder: 'Explain how this evidence supports your claim...' },
+    { id: 'concluding_sentence', label: 'Concluding Sentence', placeholder: 'Wrap up and transition...' },
+]
+
+const researchBodySections = [
+    { id: 'topic_sentence', label: 'Topic Sentence', placeholder: 'The main idea of this section...' },
+    { id: 'lead_in', label: 'Lead-in', placeholder: 'Introduce the source and its relevance...' },
+    { id: 'quote', label: 'Quote / Paraphrase / Data', placeholder: 'Include sourced evidence with citation...' },
+    { id: 'analysis', label: 'Analysis', placeholder: 'Interpret the evidence and connect it to your thesis...' },
+    { id: 'concluding_sentence', label: 'Concluding Sentence', placeholder: 'Summarize and transition...' },
+]
+
+const expositoryBodySections = [
+    { id: 'topic_sentence', label: 'Topic Sentence', placeholder: 'The main idea of this paragraph...' },
+    { id: 'explanation', label: 'Explanation', placeholder: 'Explain the concept clearly...' },
+    { id: 'example', label: 'Example / Evidence', placeholder: 'Provide a supporting example, fact, or detail...' },
+    { id: 'analysis', label: 'Analysis', placeholder: 'Why does this matter? Connect back to the thesis...' },
+    { id: 'concluding_sentence', label: 'Concluding Sentence', placeholder: 'Wrap up and transition...' },
+]
+
+// ── Helper to prefix section ids with a group index ────────────────
+
+function prefixSections(sections, prefix) {
+    return sections.map(s => ({
+        ...s,
+        id: `${prefix}_${s.id}`,
+    }))
+}
+
+// ── Essay type definitions ─────────────────────────────────────────
+
 const essayTypes = [
     {
         id: 'narrative',
@@ -34,9 +81,11 @@ const essayTypes = [
             },
             {
                 group: 'Rising Action',
+                addable: true,
                 sections: [
-                    { id: 'event_1', label: 'First Key Event', placeholder: 'The first significant moment in your story...' },
-                    { id: 'event_2', label: 'Building Tension', placeholder: 'Events that escalate the conflict or challenge...' },
+                    { id: 'body_1_event', label: 'Key Event', placeholder: 'A significant moment in your story...' },
+                    { id: 'body_1_details', label: 'Sensory Details & Dialogue', placeholder: 'Vivid details that bring this moment to life...' },
+                    { id: 'body_1_reflection', label: 'In-the-Moment Reflection', placeholder: 'What were you thinking or feeling at this point?' },
                 ]
             },
             {
@@ -52,7 +101,15 @@ const essayTypes = [
                     { id: 'reflection', label: 'Reflection & Takeaway', placeholder: 'What you learned or how this experience shaped you...' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Rising Action',
+            sections: [
+                { id: 'event', label: 'Key Event', placeholder: 'A significant moment in your story...' },
+                { id: 'details', label: 'Sensory Details & Dialogue', placeholder: 'Vivid details that bring this moment to life...' },
+                { id: 'reflection', label: 'In-the-Moment Reflection', placeholder: 'What were you thinking or feeling at this point?' },
+            ]
+        }
     },
     {
         id: 'descriptive',
@@ -70,11 +127,12 @@ const essayTypes = [
                 ]
             },
             {
-                group: 'Body — Sensory Details',
+                group: 'Sensory Paragraph',
+                addable: true,
                 sections: [
-                    { id: 'visual', label: 'Visual Details', placeholder: 'What does it look like? Colors, shapes, lighting...' },
-                    { id: 'auditory', label: 'Sounds & Atmosphere', placeholder: 'What sounds are present? Silence, noise, music...' },
-                    { id: 'tactile_other', label: 'Touch, Smell & Taste', placeholder: 'Textures, temperatures, scents, flavors...' },
+                    { id: 'body_1_focus', label: 'Focus / Sense', placeholder: 'Which sense or aspect are you focusing on here?' },
+                    { id: 'body_1_details', label: 'Vivid Details', placeholder: 'Rich, specific descriptions that paint a picture...' },
+                    { id: 'body_1_impression', label: 'Connection to Impression', placeholder: 'How do these details reinforce your dominant impression?' },
                 ]
             },
             {
@@ -83,7 +141,15 @@ const essayTypes = [
                     { id: 'final_impression', label: 'Final Impression', placeholder: 'Reinforce the dominant impression and leave the reader with a lasting image...' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Sensory Paragraph',
+            sections: [
+                { id: 'focus', label: 'Focus / Sense', placeholder: 'Which sense or aspect are you focusing on here?' },
+                { id: 'details', label: 'Vivid Details', placeholder: 'Rich, specific descriptions that paint a picture...' },
+                { id: 'impression', label: 'Connection to Impression', placeholder: 'How do these details reinforce your dominant impression?' },
+            ]
+        }
     },
     {
         id: 'expository',
@@ -102,24 +168,13 @@ const essayTypes = [
             },
             {
                 group: 'Body Paragraph 1',
-                sections: [
-                    { id: 'topic_1', label: 'Topic Sentence', placeholder: 'The main idea of this paragraph...' },
-                    { id: 'evidence_1', label: 'Explanation & Evidence', placeholder: 'Facts, definitions, examples supporting the topic...' },
-                ]
+                addable: true,
+                sections: prefixSections(expositoryBodySections, 'body_1'),
             },
             {
                 group: 'Body Paragraph 2',
-                sections: [
-                    { id: 'topic_2', label: 'Topic Sentence', placeholder: 'The main idea of this paragraph...' },
-                    { id: 'evidence_2', label: 'Explanation & Evidence', placeholder: 'Facts, definitions, examples supporting the topic...' },
-                ]
-            },
-            {
-                group: 'Body Paragraph 3',
-                sections: [
-                    { id: 'topic_3', label: 'Topic Sentence', placeholder: 'The main idea of this paragraph...' },
-                    { id: 'evidence_3', label: 'Explanation & Evidence', placeholder: 'Facts, definitions, examples supporting the topic...' },
-                ]
+                addable: true,
+                sections: prefixSections(expositoryBodySections, 'body_2'),
             },
             {
                 group: 'Conclusion',
@@ -128,7 +183,11 @@ const essayTypes = [
                     { id: 'closing', label: 'Closing Thought', placeholder: 'A final thought that ties everything together...' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Body Paragraph',
+            sections: expositoryBodySections,
+        }
     },
     {
         id: 'argumentative',
@@ -147,23 +206,21 @@ const essayTypes = [
             },
             {
                 group: 'Body Paragraph 1',
-                sections: [
-                    { id: 'topic_1', label: 'Topic Sentence', placeholder: 'Your first supporting argument...' },
-                    { id: 'evidence_1', label: 'Evidence & Analysis', placeholder: 'Facts, statistics, or quotes that support this point...' },
-                ]
+                addable: true,
+                sections: prefixSections(argumentBodySections, 'body_1'),
             },
             {
                 group: 'Body Paragraph 2',
-                sections: [
-                    { id: 'topic_2', label: 'Topic Sentence', placeholder: 'Your second supporting argument...' },
-                    { id: 'evidence_2', label: 'Evidence & Analysis', placeholder: 'Facts, statistics, or quotes that support this point...' },
-                ]
+                addable: true,
+                sections: prefixSections(argumentBodySections, 'body_2'),
             },
             {
                 group: 'Counterargument',
                 sections: [
                     { id: 'counter', label: 'Counterargument', placeholder: 'Acknowledge the opposing viewpoint...' },
-                    { id: 'rebuttal', label: 'Rebuttal', placeholder: 'Explain why your argument is still stronger...' },
+                    { id: 'rebuttal_lead_in', label: 'Lead-in to Rebuttal', placeholder: 'Transition into your response to the counterargument...' },
+                    { id: 'rebuttal_evidence', label: 'Rebuttal Evidence', placeholder: 'Evidence that weakens the counterargument...' },
+                    { id: 'rebuttal_analysis', label: 'Rebuttal Analysis', placeholder: 'Explain why your argument is still stronger...' },
                 ]
             },
             {
@@ -173,7 +230,11 @@ const essayTypes = [
                     { id: 'call_to_action', label: 'Call to Action', placeholder: 'What should the reader think or do after reading?' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Body Paragraph',
+            sections: argumentBodySections,
+        }
     },
     {
         id: 'compare_contrast',
@@ -191,17 +252,23 @@ const essayTypes = [
                 ]
             },
             {
-                group: 'Similarities',
+                group: 'Point of Comparison 1',
+                addable: true,
                 sections: [
-                    { id: 'similarity_1', label: 'Key Similarity 1', placeholder: 'A major way the subjects are alike...' },
-                    { id: 'similarity_2', label: 'Key Similarity 2', placeholder: 'Another important similarity...' },
+                    { id: 'body_1_point', label: 'Point of Comparison', placeholder: 'What aspect are you comparing?' },
+                    { id: 'body_1_subject_a', label: 'Subject A', placeholder: 'How does the first subject relate to this point?' },
+                    { id: 'body_1_subject_b', label: 'Subject B', placeholder: 'How does the second subject relate to this point?' },
+                    { id: 'body_1_analysis', label: 'Analysis', placeholder: 'What does this comparison reveal?' },
                 ]
             },
             {
-                group: 'Differences',
+                group: 'Point of Comparison 2',
+                addable: true,
                 sections: [
-                    { id: 'difference_1', label: 'Key Difference 1', placeholder: 'A major way the subjects differ...' },
-                    { id: 'difference_2', label: 'Key Difference 2', placeholder: 'Another important difference...' },
+                    { id: 'body_2_point', label: 'Point of Comparison', placeholder: 'What aspect are you comparing?' },
+                    { id: 'body_2_subject_a', label: 'Subject A', placeholder: 'How does the first subject relate to this point?' },
+                    { id: 'body_2_subject_b', label: 'Subject B', placeholder: 'How does the second subject relate to this point?' },
+                    { id: 'body_2_analysis', label: 'Analysis', placeholder: 'What does this comparison reveal?' },
                 ]
             },
             {
@@ -210,7 +277,16 @@ const essayTypes = [
                     { id: 'synthesis', label: 'Synthesis', placeholder: 'What do these comparisons reveal? Which is better, or what do we learn?' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Point of Comparison',
+            sections: [
+                { id: 'point', label: 'Point of Comparison', placeholder: 'What aspect are you comparing?' },
+                { id: 'subject_a', label: 'Subject A', placeholder: 'How does the first subject relate to this point?' },
+                { id: 'subject_b', label: 'Subject B', placeholder: 'How does the second subject relate to this point?' },
+                { id: 'analysis', label: 'Analysis', placeholder: 'What does this comparison reveal?' },
+            ]
+        }
     },
     {
         id: 'cause_effect',
@@ -228,17 +304,20 @@ const essayTypes = [
                 ]
             },
             {
-                group: 'Causes',
+                group: 'Cause 1',
+                addable: true,
                 sections: [
-                    { id: 'cause_1', label: 'Primary Cause', placeholder: 'The main reason something happened...' },
-                    { id: 'cause_2', label: 'Contributing Cause', placeholder: 'Another factor that contributed...' },
+                    { id: 'body_1_cause', label: 'Cause', placeholder: 'Describe this cause...' },
+                    { id: 'body_1_lead_in', label: 'Lead-in', placeholder: 'Introduce evidence for this cause...' },
+                    { id: 'body_1_evidence', label: 'Evidence', placeholder: 'Facts or examples that demonstrate this cause...' },
+                    { id: 'body_1_analysis', label: 'Analysis', placeholder: 'How does this cause lead to the effect?' },
                 ]
             },
             {
                 group: 'Effects',
                 sections: [
-                    { id: 'effect_1', label: 'Immediate Effect', placeholder: 'What happened right away as a result...' },
-                    { id: 'effect_2', label: 'Long-term Effect', placeholder: 'Lasting consequences or outcomes...' },
+                    { id: 'effect_immediate', label: 'Immediate Effect', placeholder: 'What happened right away as a result...' },
+                    { id: 'effect_longterm', label: 'Long-term Effect', placeholder: 'Lasting consequences or outcomes...' },
                 ]
             },
             {
@@ -247,7 +326,16 @@ const essayTypes = [
                     { id: 'summary', label: 'Summary & Significance', placeholder: 'Why does this cause-effect relationship matter?' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Cause',
+            sections: [
+                { id: 'cause', label: 'Cause', placeholder: 'Describe this cause...' },
+                { id: 'lead_in', label: 'Lead-in', placeholder: 'Introduce evidence for this cause...' },
+                { id: 'evidence', label: 'Evidence', placeholder: 'Facts or examples that demonstrate this cause...' },
+                { id: 'analysis', label: 'Analysis', placeholder: 'How does this cause lead to the effect?' },
+            ]
+        }
     },
     {
         id: 'literary_analysis',
@@ -266,19 +354,13 @@ const essayTypes = [
             },
             {
                 group: 'Analysis Paragraph 1',
-                sections: [
-                    { id: 'claim_1', label: 'Claim', placeholder: 'Your first analytical point...' },
-                    { id: 'textual_evidence_1', label: 'Textual Evidence', placeholder: 'A quote or specific reference from the text...' },
-                    { id: 'analysis_1', label: 'Analysis', placeholder: 'Explain how this evidence supports your thesis...' },
-                ]
+                addable: true,
+                sections: prefixSections(analyticBodySections, 'body_1'),
             },
             {
                 group: 'Analysis Paragraph 2',
-                sections: [
-                    { id: 'claim_2', label: 'Claim', placeholder: 'Your second analytical point...' },
-                    { id: 'textual_evidence_2', label: 'Textual Evidence', placeholder: 'A quote or specific reference from the text...' },
-                    { id: 'analysis_2', label: 'Analysis', placeholder: 'Explain how this evidence supports your thesis...' },
-                ]
+                addable: true,
+                sections: prefixSections(analyticBodySections, 'body_2'),
             },
             {
                 group: 'Conclusion',
@@ -286,7 +368,11 @@ const essayTypes = [
                     { id: 'synthesis', label: 'Synthesis & Broader Significance', placeholder: 'How does your analysis deepen understanding of the work?' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Analysis Paragraph',
+            sections: analyticBodySections,
+        }
     },
     {
         id: 'research',
@@ -305,19 +391,13 @@ const essayTypes = [
             },
             {
                 group: 'Body Section 1',
-                sections: [
-                    { id: 'topic_1', label: 'Topic Sentence', placeholder: 'The main idea of this section...' },
-                    { id: 'source_evidence_1', label: 'Source Evidence & Citations', placeholder: 'Researched findings with proper citations...' },
-                    { id: 'analysis_1', label: 'Analysis', placeholder: 'Your interpretation of the evidence...' },
-                ]
+                addable: true,
+                sections: prefixSections(researchBodySections, 'body_1'),
             },
             {
                 group: 'Body Section 2',
-                sections: [
-                    { id: 'topic_2', label: 'Topic Sentence', placeholder: 'The main idea of this section...' },
-                    { id: 'source_evidence_2', label: 'Source Evidence & Citations', placeholder: 'Researched findings with proper citations...' },
-                    { id: 'analysis_2', label: 'Analysis', placeholder: 'Your interpretation of the evidence...' },
-                ]
+                addable: true,
+                sections: prefixSections(researchBodySections, 'body_2'),
             },
             {
                 group: 'Conclusion',
@@ -326,7 +406,11 @@ const essayTypes = [
                     { id: 'implications', label: 'Implications & Future Research', placeholder: 'What are the broader implications? What remains to be explored?' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Body Section',
+            sections: researchBodySections,
+        }
     },
     {
         id: 'reflective',
@@ -345,9 +429,11 @@ const essayTypes = [
             },
             {
                 group: 'Description of Experience',
+                addable: true,
                 sections: [
-                    { id: 'what_happened', label: 'What Happened', placeholder: 'Describe the experience in detail...' },
-                    { id: 'thoughts_feelings', label: 'Thoughts & Feelings', placeholder: 'How did you feel during and after the experience?' },
+                    { id: 'body_1_event', label: 'What Happened', placeholder: 'Describe a key moment of the experience...' },
+                    { id: 'body_1_thoughts', label: 'Thoughts & Feelings', placeholder: 'How did you feel? What were you thinking?' },
+                    { id: 'body_1_significance', label: 'Why It Mattered', placeholder: 'Why was this moment significant?' },
                 ]
             },
             {
@@ -363,7 +449,15 @@ const essayTypes = [
                     { id: 'looking_forward', label: 'Looking Forward', placeholder: 'How will you apply what you learned in the future?' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Experience Moment',
+            sections: [
+                { id: 'event', label: 'What Happened', placeholder: 'Describe a key moment of the experience...' },
+                { id: 'thoughts', label: 'Thoughts & Feelings', placeholder: 'How did you feel? What were you thinking?' },
+                { id: 'significance', label: 'Why It Mattered', placeholder: 'Why was this moment significant?' },
+            ]
+        }
     },
     {
         id: 'process',
@@ -382,23 +476,20 @@ const essayTypes = [
             },
             {
                 group: 'Step 1',
+                addable: true,
                 sections: [
-                    { id: 'step_1', label: 'Step 1', placeholder: 'The first step in the process...' },
-                    { id: 'step_1_detail', label: 'Details & Tips', placeholder: 'Important details, warnings, or tips for this step...' },
+                    { id: 'body_1_instruction', label: 'Instruction', placeholder: 'What does the reader need to do in this step?' },
+                    { id: 'body_1_detail', label: 'Details & Tips', placeholder: 'Important details, warnings, or tips...' },
+                    { id: 'body_1_transition', label: 'Transition', placeholder: 'Connect to the next step...' },
                 ]
             },
             {
                 group: 'Step 2',
+                addable: true,
                 sections: [
-                    { id: 'step_2', label: 'Step 2', placeholder: 'The second step in the process...' },
-                    { id: 'step_2_detail', label: 'Details & Tips', placeholder: 'Important details, warnings, or tips for this step...' },
-                ]
-            },
-            {
-                group: 'Step 3',
-                sections: [
-                    { id: 'step_3', label: 'Step 3', placeholder: 'The third step in the process...' },
-                    { id: 'step_3_detail', label: 'Details & Tips', placeholder: 'Important details, warnings, or tips for this step...' },
+                    { id: 'body_2_instruction', label: 'Instruction', placeholder: 'What does the reader need to do in this step?' },
+                    { id: 'body_2_detail', label: 'Details & Tips', placeholder: 'Important details, warnings, or tips...' },
+                    { id: 'body_2_transition', label: 'Transition', placeholder: 'Connect to the next step...' },
                 ]
             },
             {
@@ -408,7 +499,15 @@ const essayTypes = [
                     { id: 'troubleshooting', label: 'Troubleshooting & Final Tips', placeholder: 'Common issues and how to fix them...' },
                 ]
             },
-        ]
+        ],
+        bodyTemplate: {
+            group: 'Step',
+            sections: [
+                { id: 'instruction', label: 'Instruction', placeholder: 'What does the reader need to do in this step?' },
+                { id: 'detail', label: 'Details & Tips', placeholder: 'Important details, warnings, or tips...' },
+                { id: 'transition', label: 'Transition', placeholder: 'Connect to the next step...' },
+            ]
+        }
     },
 ]
 
@@ -428,14 +527,48 @@ export function getEssayTypeColor(id) {
 }
 
 /**
- * Helper: build an empty structure object for a given essay type
- * Returns { sectionId: '' } for each section
+ * Helper: build an initial groups array from a type's default structure.
+ * Each group gets a unique key for React rendering.
  */
-export function buildEmptyStructure(essayTypeId) {
+export function buildInitialGroups(essayTypeId) {
     const type = getEssayType(essayTypeId)
-    if (!type) return {}
+    if (!type) return []
+    return type.structure.map((group, idx) => ({
+        ...group,
+        key: `${group.group.replace(/\s+/g, '_').toLowerCase()}_${idx}`,
+    }))
+}
+
+/**
+ * Helper: create a new body paragraph group from the type's bodyTemplate
+ * with uniquely-prefixed section ids.
+ */
+export function createNewBodyGroup(essayTypeId, existingGroups) {
+    const type = getEssayType(essayTypeId)
+    if (!type || !type.bodyTemplate) return null
+
+    // Count how many body groups already exist to generate unique ids
+    const bodyCount = existingGroups.filter(g => g.addable).length + 1
+    const prefix = `body_${bodyCount}`
+
+    return {
+        group: `${type.bodyTemplate.group} ${bodyCount}`,
+        addable: true,
+        isDynamic: true,
+        key: `dynamic_body_${Date.now()}`,
+        sections: type.bodyTemplate.sections.map(s => ({
+            ...s,
+            id: `${prefix}_${s.id}`,
+        })),
+    }
+}
+
+/**
+ * Helper: build an empty structure object from groups
+ */
+export function buildEmptyStructure(groups) {
     const structure = {}
-    for (const group of type.structure) {
+    for (const group of groups) {
         for (const section of group.sections) {
             structure[section.id] = ''
         }

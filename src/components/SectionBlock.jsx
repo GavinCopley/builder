@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Pencil, Sparkles, Check, X, Loader2 } from 'lucide-react'
+import { generateSectionContent } from '../lib/gemini'
 
-export default function SectionBlock({ section, content, onUpdate }) {
+export default function SectionBlock({ section, groupLabel, content, onUpdate, essayContext }) {
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState(content || '')
     const [generating, setGenerating] = useState(false)
+    const [error, setError] = useState(null)
 
     const handleSave = () => {
         onUpdate(section.id, draft)
@@ -18,14 +20,21 @@ export default function SectionBlock({ section, content, onUpdate }) {
 
     const handleAIGenerate = async () => {
         setGenerating(true)
+        setError(null)
         try {
-            // Placeholder AI generation - simulate delay
-            await new Promise(resolve => setTimeout(resolve, 1200))
-            const generated = `[AI-generated content for "${section.label}"] This is a placeholder. Connect to your AI backend to generate real content based on the essay context.`
+            const generated = await generateSectionContent({
+                essayType: essayContext?.essayType || 'general',
+                topic: essayContext?.topic || '',
+                sectionLabel: section.label,
+                groupLabel: groupLabel,
+                existingSections: essayContext?.structure || {},
+                allGroups: essayContext?.groups || [],
+            })
             setDraft(generated)
             onUpdate(section.id, generated)
         } catch (err) {
             console.error('AI generation error:', err)
+            setError(err.message || 'Failed to generate content')
         } finally {
             setGenerating(false)
         }
@@ -77,6 +86,20 @@ export default function SectionBlock({ section, content, onUpdate }) {
                     </div>
                 )}
             </div>
+
+            {/* Error message */}
+            {error && (
+                <div
+                    className="mx-4 mb-2 px-3 py-2 rounded-md text-xs"
+                    style={{
+                        backgroundColor: 'var(--color-error)',
+                        color: 'white',
+                        opacity: 0.9,
+                    }}
+                >
+                    {error}
+                </div>
+            )}
 
             {/* Content area */}
             {editing ? (
