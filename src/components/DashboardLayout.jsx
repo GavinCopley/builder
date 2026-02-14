@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
-import { Menu } from 'lucide-react'
+import { Menu, PanelLeftOpen } from 'lucide-react'
 
 export default function DashboardLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -38,10 +38,10 @@ export default function DashboardLayout() {
             {/* Sidebar */}
             <div
                 className={`
-          ${isMobile ? 'fixed inset-y-0 left-0 z-30' : 'relative'}
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          transition-transform duration-200 ease-in-out
-        `}
+                    ${isMobile ? 'fixed inset-y-0 left-0 z-30' : 'relative'}
+                    ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                    transition-transform duration-200 ease-in-out
+                `}
             >
                 <Sidebar
                     isCollapsed={!sidebarOpen}
@@ -49,6 +49,27 @@ export default function DashboardLayout() {
                     onCloseMobile={() => isMobile && setSidebarOpen(false)}
                 />
             </div>
+
+            {/* Collapsed sidebar strip — desktop only */}
+            {!isMobile && !sidebarOpen && (
+                <div
+                    className="flex flex-col items-center py-3 px-1 flex-shrink-0"
+                    style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        borderRight: '1px solid var(--color-border)',
+                        width: '48px',
+                    }}
+                >
+                    <button
+                        onClick={toggleSidebar}
+                        className="p-2 rounded-lg transition-colors hover:bg-[var(--color-bg-hover)]"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                        title="Open sidebar"
+                    >
+                        <PanelLeftOpen className="w-5 h-5" />
+                    </button>
+                </div>
+            )}
 
             {/* Main content */}
             <div className="flex-1 flex flex-col min-w-0">

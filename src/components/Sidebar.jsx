@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import essayTypes, { getEssayTypeColor } from '../data/essayTypes'
 import {
     Plus,
-    MessageSquare,
     ChevronLeft,
+    ChevronDown,
     ChevronRight,
     LogOut,
     FileText,
@@ -19,12 +20,20 @@ export default function Sidebar({ isCollapsed, onToggle, onCloseMobile }) {
     const { user, signOut } = useAuth()
     const [chats, setChats] = useState([])
     const [loading, setLoading] = useState(true)
+    const [collapsedGroups, setCollapsedGroups] = useState({})
 
     useEffect(() => {
         if (user) {
             fetchChats()
         }
     }, [user])
+
+    // Re-fetch chats when navigating (to catch new chats / title updates)
+    useEffect(() => {
+        if (user) {
+            fetchChats()
+        }
+    }, [location.pathname])
 
     const fetchChats = async () => {
         try {
@@ -64,7 +73,6 @@ export default function Sidebar({ isCollapsed, onToggle, onCloseMobile }) {
             if (error) throw error
             setChats(chats.filter(chat => chat.id !== chatId))
 
-            // If we're on the deleted chat, navigate to home
             if (location.pathname === `/chat/${chatId}`) {
                 navigate('/')
             }
@@ -78,17 +86,38 @@ export default function Sidebar({ isCollapsed, onToggle, onCloseMobile }) {
         navigate('/login')
     }
 
-    const getEssayTypeColor = (type) => {
-        switch (type) {
-            case 'argumentative':
-                return 'var(--color-argumentative)'
-            case 'persuasive':
-                return 'var(--color-persuasive)'
-            case 'narrative':
-                return 'var(--color-narrative)'
-            default:
-                return 'var(--color-text-secondary)'
+    const toggleGroup = (typeId) => {
+        setCollapsedGroups(prev => ({
+            ...prev,
+            [typeId]: !prev[typeId]
+        }))
+    }
+
+    // Group chats by essay type
+    const groupedChats = {}
+    for (const chat of chats) {
+        const type = chat.essay_type || 'other'
+        if (!groupedChats[type]) {
+            groupedChats[type] = []
         }
+        groupedChats[type].push(chat)
+    }
+
+    // Order groups by the essayTypes config order
+    const orderedGroupKeys = essayTypes
+        .map(t => t.id)
+        .filter(id => groupedChats[id])
+
+    // Add any uncategorized types at the end
+    for (const key of Object.keys(groupedChats)) {
+        if (!orderedGroupKeys.includes(key)) {
+            orderedGroupKeys.push(key)
+        }
+    }
+
+    const getTypeLabel = (typeId) => {
+        const type = essayTypes.find(t => t.id === typeId)
+        return type ? type.title : typeId
     }
 
     return (
@@ -136,19 +165,12 @@ export default function Sidebar({ isCollapsed, onToggle, onCloseMobile }) {
                     }}
                 >
                     <Plus className="w-5 h-5" />
-                    New Chat
+                    New Essay
                 </button>
             </div>
 
-            {/* Chat List */}
+            {/* Chat List — grouped by type */}
             <div className="flex-1 overflow-y-auto px-3 pb-3">
-                <div
-                    className="text-xs font-medium uppercase tracking-wider mb-2 px-2"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                >
-                    Past Chats
-                </div>
-
                 {loading ? (
                     <div className="flex items-center justify-center py-8">
                         <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-text-secondary)' }} />
@@ -158,42 +180,77 @@ export default function Sidebar({ isCollapsed, onToggle, onCloseMobile }) {
                         className="text-sm text-center py-8 px-2"
                         style={{ color: 'var(--color-text-secondary)' }}
                     >
-                        No chats yet. Start a new conversation!
+                        No essays yet. Start a new one!
                     </div>
                 ) : (
-                    <div className="space-y-1">
-                        {chats.map((chat) => {
-                            const isActive = location.pathname === `/chat/${chat.id}`
+                    <div className="space-y-2">
+                        {orderedGroupKeys.map((typeId) => {
+                            const typeChats = groupedChats[typeId]
+                            const isGroupCollapsed = collapsedGroups[typeId]
+                            const color = getEssayTypeColor(typeId)
+
                             return (
-                                <div
-                                    key={chat.id}
-                                    onClick={() => handleChatClick(chat.id)}
-                                    className="group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors"
-                                    style={{
-                                        backgroundColor: isActive ? 'var(--color-bg-hover)' : 'transparent',
-                                    }}
-                                >
-                                    <div
-                                        className="w-2 h-2 rounded-full flex-shrink-0"
-                                        style={{ backgroundColor: getEssayTypeColor(chat.essay_type) }}
-                                    />
-                                    <MessageSquare
-                                        className="w-4 h-4 flex-shrink-0"
-                                        style={{ color: 'var(--color-text-secondary)' }}
-                                    />
-                                    <span
-                                        className="flex-1 truncate text-sm"
-                                        style={{ color: 'var(--color-text)' }}
-                                    >
-                                        {chat.title}
-                                    </span>
+                                <div key={typeId}>
+                                    {/* Group header */}
                                     <button
-                                        onClick={(e) => handleDeleteChat(e, chat.id)}
-                                        className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity"
-                                        style={{ color: 'var(--color-text-secondary)' }}
+                                        onClick={() => toggleGroup(typeId)}
+                                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors hover:bg-[var(--color-bg-hover)]"
                                     >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <div
+                                            className="w-2 h-2 rounded-full flex-shrink-0"
+                                            style={{ backgroundColor: color }}
+                                        />
+                                        <span
+                                            className="text-xs font-semibold uppercase tracking-wider flex-1 text-left"
+                                            style={{ color: 'var(--color-text-secondary)' }}
+                                        >
+                                            {getTypeLabel(typeId)}
+                                        </span>
+                                        <span
+                                            className="text-xs"
+                                            style={{ color: 'var(--color-text-secondary)' }}
+                                        >
+                                            {typeChats.length}
+                                        </span>
+                                        {isGroupCollapsed ? (
+                                            <ChevronRight className="w-3 h-3" style={{ color: 'var(--color-text-secondary)' }} />
+                                        ) : (
+                                            <ChevronDown className="w-3 h-3" style={{ color: 'var(--color-text-secondary)' }} />
+                                        )}
                                     </button>
+
+                                    {/* Chat items */}
+                                    {!isGroupCollapsed && (
+                                        <div className="ml-4 mt-1 space-y-0.5">
+                                            {typeChats.map((chat) => {
+                                                const isActive = location.pathname === `/chat/${chat.id}`
+                                                return (
+                                                    <div
+                                                        key={chat.id}
+                                                        onClick={() => handleChatClick(chat.id)}
+                                                        className="group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors"
+                                                        style={{
+                                                            backgroundColor: isActive ? 'var(--color-bg-hover)' : 'transparent',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="flex-1 truncate text-sm"
+                                                            style={{ color: 'var(--color-text)' }}
+                                                        >
+                                                            {chat.title}
+                                                        </span>
+                                                        <button
+                                                            onClick={(e) => handleDeleteChat(e, chat.id)}
+                                                            className="opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity"
+                                                            style={{ color: 'var(--color-text-secondary)' }}
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
                             )
                         })}

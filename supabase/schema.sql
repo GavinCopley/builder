@@ -9,12 +9,17 @@ CREATE TABLE IF NOT EXISTS chats (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL DEFAULT 'New Chat',
-  essay_type TEXT CHECK (essay_type IN ('argumentative', 'persuasive', 'narrative')) NOT NULL,
+  essay_type TEXT CHECK (essay_type IN (
+    'narrative', 'descriptive', 'expository', 'argumentative',
+    'compare_contrast', 'cause_effect', 'literary_analysis',
+    'research', 'reflective', 'process'
+  )) NOT NULL,
+  structure JSONB DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Messages table
+-- Messages table (kept for future use)
 CREATE TABLE IF NOT EXISTS messages (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   chat_id UUID REFERENCES chats(id) ON DELETE CASCADE NOT NULL,
@@ -99,3 +104,15 @@ CREATE TRIGGER update_chats_updated_at
   BEFORE UPDATE ON chats
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- MIGRATION: Run this on an existing database
+-- ============================================================
+-- ALTER TABLE chats DROP CONSTRAINT IF EXISTS chats_essay_type_check;
+-- ALTER TABLE chats ADD CONSTRAINT chats_essay_type_check
+--   CHECK (essay_type IN (
+--     'narrative', 'descriptive', 'expository', 'argumentative',
+--     'compare_contrast', 'cause_effect', 'literary_analysis',
+--     'research', 'reflective', 'process'
+--   ));
+-- ALTER TABLE chats ADD COLUMN IF NOT EXISTS structure JSONB DEFAULT '{}';
